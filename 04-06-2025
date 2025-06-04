@@ -1,9 +1,12 @@
 import tkinter as tk
 from tkinter import messagebox
 from collections import defaultdict
+import re 
 
 citas_por_especialista = defaultdict(list)
 LIMITE_CITAS_POR_ESPECIALISTA = 10
+NUMERO_MAXIMO_CAMILLAS = 20
+camillas_asignadas = 0
 
 class VentanaBienvenida(tk.Tk):
     def __init__(self):
@@ -54,7 +57,7 @@ class VentanaRegistroCitas(tk.Tk):
         tk.Label(self.frame_campos, text="Especialista:", font=("Helvetica", 10), bg="#e3f2fd").grid(row=3, column=0, padx=10, pady=5, sticky="w")
         self.especialistas = ["Cardiología", "Pediatría", "Dermatología", "Odontología", "Medicina General"]
         self.especialista_elegido = tk.StringVar(self)
-        self.especialista_elegido.set(self.especialistas[0]) # Valor inicial
+        self.especialista_elegido.set(self.especialistas[0]) 
         self.menu_especialistas = tk.OptionMenu(self.frame_campos, self.especialista_elegido, *self.especialistas)
         self.menu_especialistas.config(font=("Helvetica", 10), bg="white", width=30)
         self.menu_especialistas.grid(row=3, column=1, padx=10, pady=5, sticky="ew")
@@ -87,7 +90,12 @@ class VentanaRegistroCitas(tk.Tk):
         entry.grid(row=row, column=1, padx=10, pady=5, sticky="ew")
         setattr(self, entry_attribute_name, entry)
 
+    def validar_nombre(self, nombre):
+        return re.fullmatch(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$', nombre)
+
     def registrar_cita(self):
+        global camillas_asignadas
+
         nombre = self.entry_nombre.get().strip()
         fecha = self.entry_fecha.get().strip()
         hora = self.entry_hora.get().strip()
@@ -96,6 +104,10 @@ class VentanaRegistroCitas(tk.Tk):
         if not all([nombre, fecha, hora, especialista]):
             messagebox.showwarning("Campos Vacíos", "Por favor, complete todos los campos para registrar la cita.")
             return
+
+        if not self.validar_nombre(nombre):
+         messagebox.showerror("Error en el nombre","El nombre del paciente solo debe contener letras y espacios."
+        return
 
         if len(citas_por_especialista[especialista]) >= LIMITE_CITAS_POR_ESPECIALISTA:
             messagebox.showerror("Límite de Citas Excedido",
@@ -107,10 +119,11 @@ class VentanaRegistroCitas(tk.Tk):
             "Fecha": fecha,
             "Hora": hora,
             "Especialista": especialista
+            "Numero de camilla": numero_camilla
         }
 
         citas_por_especialista[especialista].append(cita_info)
-        messagebox.showinfo("Cita Registrada", f"La cita para {nombre} con {especialista},{id} ha sido registrada exitosamente.")
+        messagebox.showinfo("Cita Registrada", f"La cita para {nombre} con {especialista},{id} ha sido registrada exitosamente.Su numero de camilla asignaddo es:{numero_camilla}.")
 
         self.entry_nombre.delete(0, tk.END)
         self.entry_fecha.delete(0, tk.END)
